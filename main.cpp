@@ -14,6 +14,17 @@ static const int input_wheel_offset = 69;
 static const int input_wheel_tolerance = 5;
 static const int input_wheel_encoder_dalay = 777;
 static const int input_wheel_home_position_delay = 1000;
+static const int input_wheel_power = 500; // <0; 1000>
+
+// output_wheel
+int output_wheel_start_state = 0;
+int output_wheel_curent_state = 0;
+static const int output_wheel_digits = 10;
+static const int output_wheel_angle = 360;
+static const int output_wheel_step = output_wheel_angle / output_wheel_digits;
+static const int output_wheel_tolerance = 5;
+static const int output_wheel_power = 700; // <0; 1000>
+
 
 // binary_array
 bool binary_array[4] = {1, 1, 1, 1};
@@ -39,7 +50,7 @@ int binaryToDecimal(const bool *binary, int size)
 	}
 	if (decimal > border_top)
 	{
-		Serial.printf("ERROR value %d out of border %d\r\n", decimal, border_top);
+		Serial.printf("ERROR:\r\nValue %d out of border %d\r\nReturn 0\r\n\r\n", decimal, border_top);
 		return 0;
 	}
 	return decimal;
@@ -49,8 +60,8 @@ void input_wheel_home_position()
 {
 	input_wheel_home_position_run = true;
 	hLED2.on();
-	Serial.printf("Go Home from: %d\r\n", input_wheel_curent_state);
-	hMot1.rotAbs(input_wheel_start_state, 500, true, INFINITE); // rotate to "0" ticks absolute position, and NOT block program until task finishes
+	Serial.printf("MOTOR:\r\ninput_wheel from: %d\tto:%d\r\n", input_wheel_curent_state, input_wheel_start_state);
+	hMot1.rotAbs(input_wheel_start_state, input_wheel_power, true, INFINITE); // rotate to "0" ticks absolute position, and NOT block program until task finishes
 	// hMot1.rotRel(input_wheel_start_state - input_wheel_curent_state, 500, false, INFINITE);
 
 	while (true)
@@ -101,9 +112,43 @@ void input_wheel_encoder()
 	}
 }
 
+void output_wheel_show()
+{
+	hLED3.on();
+	int position = output_number * output_wheel_step;
+	Serial.printf("MOTOR:\r\noutput_wheel from: %d\tto:%d\r\n", output_wheel_curent_state, position);
+	hMot2.rotAbs(position, output_wheel_power, true, INFINITE); // rotate to "0" ticks absolute position, and NOT block program until task finishes
+
+	while (true)
+	{
+		if (abs(output_wheel_start_state - output_wheel_curent_state) > output_wheel_tolerance)
+		{
+			//hMot2.stop();
+			//hMot2.stopRegulation();
+			break;
+		}
+	}
+
+	input_wheel_home_position_run = false;
+	hLED3.off();
+}
+
 void welcome()
 {
-	Serial.printf("Husarion Telegraf\nhttps://github.com/Niewiaro/Husarion-Telegraf");
+	Serial.printf("Husarion Telegraf\r\nhttps://github.com/Niewiaro/Husarion-Telegraf");
+	Serial.printf(" __  __           _           _                   _      ");
+	Serial.printf("|  \\/  |         | |         | |                 (_)     ");
+	Serial.printf("| \\  / | ___  ___| |__   __ _| |_ _ __ ___  _ __  _  ___ ");
+	Serial.printf("| |\\/| |/ _ \\/ __| '_ \\ / _` | __| '__/ _ \\| '_ \\| |/ __|");
+	Serial.printf("| |  | |  __/ (__| | | | (_| | |_| | | (_) | | | | | (__ ");
+	Serial.printf("|_|__|_|\\___|\\___|_| |_|\\__,_|\\__|_|  \\___/|_| |_|_|\\___|");
+	Serial.printf("|  __ \\          (_)                                     ");
+	Serial.printf("| |  | | ___  ___ _  __ _ _ __                           ");
+	Serial.printf("| |  | |/ _ \\/ __| |/ _` | '_ \\                          ");
+	Serial.printf("| |__| |  __/\\__ \\ | (_| | | | |                         ");
+	Serial.printf("|_____/ \\___||___/_|\\__, |_| |_|                         ");
+	Serial.printf("                     __/ |                               ");
+	Serial.printf("                    |___/                                ");
 }
 
 void init()
@@ -115,6 +160,11 @@ void init()
 	input_wheel_start_state = hMot1.getEncoderCnt();
 	input_wheel_curent_state = input_wheel_start_state;
 	Serial.printf("input_wheel_state: %d\r\n", input_wheel_start_state);
+
+	// output_wheel_start_state
+	output_wheel_start_state = hMot2.getEncoderCnt();
+	output_wheel_curent_state = output_wheel_start_state;
+	Serial.printf("output_wheel_state: %d\r\n", output_wheel_start_state);
 
 	// binary_array
 	for (int i = 0; i < binary_array_size; ++i)
