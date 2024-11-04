@@ -9,9 +9,9 @@ using namespace hFramework;
 // input_wheel
 int input_wheel_start_state = 0;
 int input_wheel_curent_state = 0;
-static const int input_wheel_offset = 10;
+static const int input_wheel_offset = 50;
 static const int input_wheel_tolerance = 5;
-static const int input_wheel_encoder_dalay = 100;
+static const int input_wheel_encoder_dalay = 500;
 static const int input_wheel_home_position_delay = 1000;
 
 // binary_array
@@ -38,6 +38,7 @@ int binaryToDecimal(const bool *binary, int size)
 	}
 	if (decimal > border_top)
 	{
+		Serial.printf("ERROR value %d\r out of border %d\r\n", decimal, border_top);
 		return 0;
 	}
 	return decimal;
@@ -47,6 +48,7 @@ void input_wheel_home_position()
 {
 	input_wheel_home_position_run = true;
 	hLED2.on();
+	Serial.printf("Go Home from: %d\r\n", input_wheel_curent_state);
 	hMot1.rotAbs(input_wheel_start_state, 200, false, INFINITE); // rotate to "0" ticks absolute position, and NOT block program until task finishes
 
 	while (true)
@@ -85,15 +87,22 @@ void input_wheel_encoder()
 			{
 				binary_array[binary_array_index] = 0;
 			}
-
+			Serial.printf("Recived: %d\r\n", binary_array[binary_array_index]);
 			binary_array_index++;
 		}
 		sys.delay(input_wheel_encoder_dalay);
 	}
 }
 
+void welcome()
+{
+	Serial.printf("Husarion Telegraf\nhttps://github.com/Niewiaro/Husarion-Telegraf");
+}
+
 void init()
 {
+	welcome();
+	
 	// GLOBAL VARS
 	// input_wheel_start_state
 	input_wheel_start_state = hMot1.getEncoderCnt();
@@ -115,8 +124,8 @@ void init()
 	input_wheel_home_position_run = false;
 
 	// LEGO
-	hMot1.setEncoderPolarity(Polarity::Normal); // changing encoder polarity (Polarity::Normal is default)
-	hMot1.setMotorPolarity(Polarity::Reversed); // changing motor polarity
+	hMot1.setEncoderPolarity(Polarity::Reversed); // changing encoder polarity (Polarity::Normal is default)
+	hMot1.setMotorPolarity(Polarity::Normal);	  // changing motor polarity
 }
 
 void hMain()
