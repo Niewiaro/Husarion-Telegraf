@@ -9,6 +9,7 @@ using namespace hFramework;
 // input_wheel
 int input_wheel_start_state = 0;
 int input_wheel_curent_state = 0;
+static const bool input_wheel_curent_state_show = false;
 static const int input_wheel_offset = 69;
 static const int input_wheel_tolerance = 5;
 static const int input_wheel_encoder_dalay = 777;
@@ -38,7 +39,7 @@ int binaryToDecimal(const bool *binary, int size)
 	}
 	if (decimal > border_top)
 	{
-		Serial.printf("ERROR value %d\r out of border %d\r\n", decimal, border_top);
+		Serial.printf("ERROR value %d out of border %d\r\n", decimal, border_top);
 		return 0;
 	}
 	return decimal;
@@ -51,12 +52,12 @@ void input_wheel_home_position()
 	Serial.printf("Go Home from: %d\r\n", input_wheel_curent_state);
 	hMot1.rotAbs(input_wheel_start_state, 500, false, INFINITE); // rotate to "0" ticks absolute position, and NOT block program until task finishes
 	// hMot1.rotRel(input_wheel_start_state - input_wheel_curent_state, 500, false, INFINITE);
-	hMot1.releaseServo();
 
 	while (true)
 	{
 		if (abs(input_wheel_start_state - input_wheel_curent_state) > input_wheel_tolerance)
 		{
+			hMot1.stopRegulation();
 			break;
 		}
 	}
@@ -70,7 +71,10 @@ void input_wheel_encoder()
 	while (input_wheel_encoder_run)
 	{
 		input_wheel_curent_state = hMot1.getEncoderCnt();
-		Serial.printf("input_wheel_curent_state: %d\r\n", input_wheel_curent_state); // print the current position of Motor 1 (no. of encoder ticks)
+		if (input_wheel_curent_state_show)
+		{
+			Serial.printf("input_wheel_curent_state: %d\r\n", input_wheel_curent_state); // print the current position of Motor 1 (no. of encoder ticks)
+		}
 		hLED1.toggle();
 
 		if (!input_wheel_home_position_run &&
@@ -127,7 +131,7 @@ void init()
 
 	// LEGO
 	hMot1.setEncoderPolarity(Polarity::Normal); // changing encoder polarity (Polarity::Normal is default)
-	hMot1.setMotorPolarity(Polarity::Reversed);	  // changing motor polarity
+	hMot1.setMotorPolarity(Polarity::Reversed); // changing motor polarity
 }
 
 void hMain()
