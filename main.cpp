@@ -113,6 +113,10 @@ void init()
 	// RUNTIME VARS
 	input_wheel_encoder_run = true;
 	input_wheel_home_position_run = false;
+
+	// LEGO
+	hMot1.setEncoderPolarity(Polarity::Normal); // changing encoder polarity (Polarity::Normal is default)
+	hMot1.setMotorPolarity(Polarity::Reversed); // changing motor polarity
 }
 
 void hMain()
