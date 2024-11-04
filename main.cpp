@@ -50,13 +50,14 @@ void input_wheel_home_position()
 	input_wheel_home_position_run = true;
 	hLED2.on();
 	Serial.printf("Go Home from: %d\r\n", input_wheel_curent_state);
-	hMot1.rotAbs(input_wheel_start_state, 500, false, INFINITE); // rotate to "0" ticks absolute position, and NOT block program until task finishes
+	hMot1.rotAbs(input_wheel_start_state, 500, true, INFINITE); // rotate to "0" ticks absolute position, and NOT block program until task finishes
 	// hMot1.rotRel(input_wheel_start_state - input_wheel_curent_state, 500, false, INFINITE);
 
 	while (true)
 	{
 		if (abs(input_wheel_start_state - input_wheel_curent_state) > input_wheel_tolerance)
 		{
+			hMot1.stop();
 			hMot1.stopRegulation();
 			break;
 		}
