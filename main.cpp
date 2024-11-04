@@ -184,6 +184,12 @@ void init()
 	// LEGO
 	hMot1.setEncoderPolarity(Polarity::Normal); // changing encoder polarity (Polarity::Normal is default)
 	hMot1.setMotorPolarity(Polarity::Reversed); // changing motor polarity
+
+	hMot2.setEncoderPolarity(Polarity::Normal);
+	hMot2.setMotorPolarity(Polarity::Reversed);
+
+	hMot3.setEncoderPolarity(Polarity::Normal);
+	hMot3.setMotorPolarity(Polarity::Reversed);
 }
 
 void hMain()
