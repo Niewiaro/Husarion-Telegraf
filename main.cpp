@@ -203,7 +203,12 @@ void hMain()
 		if (binary_array_index == 4)
 		{
 			output_number = binaryToDecimal(binary_array, binary_array_size);
-			Serial.printf("OUTPUT\r\nbinary_array_index:\t%d\r\noutput_number:\t%d\r\n", binary_array_index, output_number);
+			Serial.printf("OUTPUT\r\nbinary_array_index:\t%d\r\nbinary_array:\t[ ", binary_array_index);
+			for (int i = 0; i < binary_array_size; ++i)
+			{
+				Serial.printf("%d; ", binary_array[i]);
+			}
+			Serial.printf("]\r\noutput_number:\t%d\r\n", output_number);
 
 			sys.taskCreate(output_wheel_show);
 
