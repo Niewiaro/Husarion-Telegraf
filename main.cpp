@@ -6,15 +6,28 @@
 using namespace hFramework;
 
 // GLOBAL VARS
+// input_wheel
 int input_wheel_start_state = 0;
-int input_wheel_offset = 10;
 int input_wheel_curent_state = 0;
+static const int input_wheel_offset = 10;
+static const int input_wheel_tolerance = 5;
+static const int input_wheel_encoder_dalay = 100;
+static const int input_wheel_home_position_delay = 1000;
+
+// binary_array
 bool binary_array[4] = {1, 1, 1, 1};
 int binary_array_index = 0;
-int binary_array_size = 4;
-int number_output = 0;
-int input_wheel_encoder_dalay = 100;
-int input_wheel_home_position_delay = 1000;
+static const int binary_array_size = 4;
+
+// binary
+static const int border_top = 9;
+
+// output
+int output_number = -1;
+
+// RUNTIME VARS
+bool input_wheel_encoder_run = true;
+bool input_wheel_home_position_run = false;
 
 int binaryToDecimal(const bool *binary, int size)
 {
@@ -23,7 +36,7 @@ int binaryToDecimal(const bool *binary, int size)
 	{
 		decimal += binary[i] * (1 << (size - 1 - i)); // (1 << n) to przesunięcie bitowe, które działa jak 2^n
 	}
-	if (decimal > 9)
+	if (decimal > border_top)
 	{
 		return 0;
 	}
@@ -32,20 +45,33 @@ int binaryToDecimal(const bool *binary, int size)
 
 void input_wheel_home_position()
 {
+	input_wheel_home_position_run = true;
 	hLED2.on();
 	hMot1.rotAbs(input_wheel_start_state, 200, false, INFINITE); // rotate to "0" ticks absolute position, and NOT block program until task finishes
+
+	while (true)
+	{
+		if (abs(input_wheel_start_state - input_wheel_curent_state) > input_wheel_tolerance)
+		{
+			break;
+		}
+	}
+
+	input_wheel_home_position_run = false;
 	hLED2.off();
 }
 
 void input_wheel_encoder()
 {
-	while (true)
+	while (input_wheel_encoder_run)
 	{
 		input_wheel_curent_state = hMot1.getEncoderCnt();
 		Serial.printf("input_wheel_curent_state: %d\r\n", input_wheel_curent_state); // print the current position of Motor 1 (no. of encoder ticks)
 		hLED1.toggle();
 
-		if (abs(input_wheel_start_state - input_wheel_curent_state) > input_wheel_offset)
+		if (!input_wheel_home_position_run &&
+			abs(input_wheel_start_state - input_wheel_curent_state) > input_wheel_offset &&
+			binary_array_index < 4)
 		{
 			sys.delay(input_wheel_home_position_delay);
 			sys.taskCreate(input_wheel_home_position);
@@ -61,20 +87,6 @@ void input_wheel_encoder()
 			}
 
 			binary_array_index++;
-
-			// check if all bits recived
-			if (binary_array_index == 4)
-			{
-				Serial.printf("binary_array_index: %d\r\n", binary_array_index);
-				number_output = binaryToDecimal(binary_array, binary_array_size);
-				Serial.printf("number_output: %d\r\n", number_output);
-
-				for (int i = 0; i < binary_array_size; ++i)
-				{
-					binary_array[i] = 1;
-				}
-				binary_array_index = 0;
-			}
 		}
 		sys.delay(input_wheel_encoder_dalay);
 	}
@@ -82,21 +94,46 @@ void input_wheel_encoder()
 
 void init()
 {
+	// GLOBAL VARS
+	// input_wheel_start_state
 	input_wheel_start_state = hMot1.getEncoderCnt();
-	input_wheel_offset = 10;
 	input_wheel_curent_state = input_wheel_start_state;
+	Serial.printf("input_wheel_state: %d\r\n", input_wheel_start_state);
 
+	// binary_array
 	for (int i = 0; i < binary_array_size; ++i)
 	{
 		binary_array[i] = 1;
 	}
-
 	binary_array_index = 0;
-	Serial.printf("input_wheel_state: %d\r\n", input_wheel_start_state);
-	sys.taskCreate(input_wheel_encoder); // this creates a task that will execute `encoder` concurrently
+
+	// other
+	output_number = -1;
+
+	// RUNTIME VARS
+	input_wheel_encoder_run = true;
+	input_wheel_home_position_run = false;
 }
 
 void hMain()
 {
 	init();
+	sys.taskCreate(input_wheel_encoder); // this creates a task that will execute `encoder` concurrently
+
+	while (true)
+	{
+		// check if all bits recived
+		if (binary_array_index == 4)
+		{
+			Serial.printf("binary_array_index: %d\r\n", binary_array_index);
+			output_number = binaryToDecimal(binary_array, binary_array_size);
+			Serial.printf("output_number: %d\r\n", output_number);
+
+			for (int i = 0; i < binary_array_size; ++i)
+			{
+				binary_array[i] = 1;
+			}
+			binary_array_index = 0;
+		}
+	}
 }
