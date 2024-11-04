@@ -18,13 +18,15 @@ static const int input_wheel_power = 500; // <0; 1000>
 
 // output_wheel
 int output_wheel_start_state = 0;
-int output_wheel_curent_state = 0;
 static const int output_wheel_digits = 10;
 static const int output_wheel_angle = 360;
 static const int output_wheel_step = output_wheel_angle / output_wheel_digits;
-static const int output_wheel_tolerance = 5;
 static const int output_wheel_power = 700; // <0; 1000>
 
+// actuator
+int actuator_start_state = 0;
+static const int actuator_target_state = 360;
+static const int actuator_power = 1000; // <0; 1000>
 
 // binary_array
 bool binary_array[4] = {1, 1, 1, 1};
@@ -60,7 +62,7 @@ void input_wheel_home_position()
 {
 	input_wheel_home_position_run = true;
 	hLED2.on();
-	Serial.printf("MOTOR:\r\ninput_wheel from: %d\tto:%d\r\n", input_wheel_curent_state, input_wheel_start_state);
+	Serial.printf("MOTOR:\r\ninput_wheel from:\t%d\t\tto:\t%d\r\n", input_wheel_curent_state, input_wheel_start_state);
 	hMot1.rotAbs(input_wheel_start_state, input_wheel_power, true, INFINITE); // rotate to "0" ticks absolute position, and NOT block program until task finishes
 	// hMot1.rotRel(input_wheel_start_state - input_wheel_curent_state, 500, false, INFINITE);
 
@@ -115,21 +117,17 @@ void input_wheel_encoder()
 void output_wheel_show()
 {
 	hLED3.on();
+
+	Serial.printf("MOTOR:\r\actuator from:\t%d\t\tto:\t%d\r\n", hMot3.getEncoderCnt(), actuator_start_state);
+	hMot3.rotAbs(actuator_start_state, actuator_power, true, INFINITE); // rotate to "0" ticks absolute position, and NOT block program until task finishes
+
 	int position = output_number * output_wheel_step;
-	Serial.printf("MOTOR:\r\noutput_wheel from: %d\tto:%d\r\n", output_wheel_curent_state, position);
+	Serial.printf("MOTOR:\r\noutput_wheel from:\t%d\t\tto:\t%d\r\n", hMot2.getEncoderCnt(), position);
 	hMot2.rotAbs(position, output_wheel_power, true, INFINITE); // rotate to "0" ticks absolute position, and NOT block program until task finishes
 
-	while (true)
-	{
-		if (abs(output_wheel_start_state - output_wheel_curent_state) > output_wheel_tolerance)
-		{
-			//hMot2.stop();
-			//hMot2.stopRegulation();
-			break;
-		}
-	}
+	Serial.printf("MOTOR:\r\actuator from:\t%d\t\tto:\t%d\r\n", hMot3.getEncoderCnt(), actuator_target_state);
+	hMot3.rotAbs(actuator_target_state, actuator_power, true, INFINITE); // rotate to "0" ticks absolute position, and NOT block program until task finishes
 
-	input_wheel_home_position_run = false;
 	hLED3.off();
 }
 
@@ -159,12 +157,15 @@ void init()
 	// input_wheel_start_state
 	input_wheel_start_state = hMot1.getEncoderCnt();
 	input_wheel_curent_state = input_wheel_start_state;
-	Serial.printf("input_wheel_state: %d\r\n", input_wheel_start_state);
+	Serial.printf("input_wheel_start_state:\t%d\r\n", input_wheel_start_state);
 
 	// output_wheel_start_state
 	output_wheel_start_state = hMot2.getEncoderCnt();
-	output_wheel_curent_state = output_wheel_start_state;
-	Serial.printf("output_wheel_state: %d\r\n", output_wheel_start_state);
+	Serial.printf("output_wheel_start_state:\t%d\r\n", output_wheel_start_state);
+
+	// actuator_start_state
+	actuator_start_state = hMot3.getEncoderCnt();
+	Serial.printf("actuator_start_state:\t%d\r\n", actuator_start_state);
 
 	// binary_array
 	for (int i = 0; i < binary_array_size; ++i)
@@ -195,9 +196,10 @@ void hMain()
 		// check if all bits recived
 		if (binary_array_index == 4)
 		{
-			Serial.printf("binary_array_index: %d\r\n", binary_array_index);
 			output_number = binaryToDecimal(binary_array, binary_array_size);
-			Serial.printf("output_number: %d\r\n", output_number);
+			Serial.printf("OUTPUT\r\nbinary_array_index:\t%d\r\noutput_number:\t%d\r\n", binary_array_index, output_number);
+
+			sys.taskCreate(output_wheel_show);
 
 			for (int i = 0; i < binary_array_size; ++i)
 			{
