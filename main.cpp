@@ -43,7 +43,7 @@ int output_number = -1;
 int clear_buuton_delay = 200;
 
 // debug
-bool debug = true;
+bool debug = false;
 int debug_info_delay = 300;
 
 // RUNTIME VARS
@@ -123,7 +123,7 @@ void input_wheel_encoder()
 			{
 				binary_array[binary_array_index] = 0;
 			}
-			Serial.printf("------- Recived -------\r\n%d\r\n", binary_array[binary_array_index]);
+			Serial.printf("------- RECIVED -------\r\n%d\r\n-----------------------\r\n", binary_array[binary_array_index]);
 			binary_array_index++;
 		}
 		sys.delay(input_wheel_encoder_dalay);
@@ -152,22 +152,9 @@ void output_show()
 	Serial.printf("------- OUTPUT -------\r\nbinary_array_index: %d\r\nbinary_array: [ ", binary_array_index);
 	for (int i = 0; i < binary_array_size; ++i)
 	{
-		Serial.printf("%d; ", binary_array[i]);
+		Serial.printf("%d; ", binary_array[i]);                    
 	}
-	Serial.printf("]\r\noutput_number: %d\r\n", output_number);
-}
-
-void clear_button_thread_loop()
-{
-	while (true)
-	{
-		hBtn1.waitForPressed(); // waiting for press hBtn1
-		printf("clear_button PRESSED\r\n");
-		sys.delay(clear_buuton_delay);
-		hBtn1.waitForReleased(); // waiting for released hBtn1
-		printf("clear_button RELEASED\r\n");
-		clear_buffor();
-	}
+	Serial.printf("]\r\noutput_number: %d\r\n----------------------\r\n", output_number);
 }
 
 void clear_buffor(bool all = false)
@@ -190,6 +177,19 @@ void clear_buffor(bool all = false)
 		{
 			binary_array[--binary_array_index] = 1;
 		}
+	}
+}
+
+void clear_button_thread_loop()
+{
+	while (true)
+	{
+		hBtn1.waitForPressed(); // waiting for press hBtn1
+		printf("clear_button PRESSED\r\n");
+		sys.delay(clear_buuton_delay);
+		hBtn1.waitForReleased(); // waiting for released hBtn1
+		printf("clear_button RELEASED\r\n");
+		clear_buffor();
 	}
 }
 
