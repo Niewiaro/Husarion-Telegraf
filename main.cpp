@@ -134,14 +134,14 @@ void output_wheel_show()
 {
 	hLED3.on();
 
-	Serial.printf("MOTOR:\r\actuator from: %d\tto: %d\r\n", hMot3.getEncoderCnt(), actuator_start_state);
+	Serial.printf("MOTOR:\r\nactuator from: %d\tto: %d\r\n", hMot3.getEncoderCnt(), actuator_start_state);
 	hMot3.rotAbs(actuator_start_state, actuator_power, true, INFINITE); // rotate to "0" ticks absolute position, and NOT block program until task finishes
 
 	int position = output_number * output_wheel_step;
 	Serial.printf("MOTOR:\r\noutput_wheel from: %d\tto: %d\r\n", hMot2.getEncoderCnt(), position);
 	hMot2.rotAbs(position, output_wheel_power, true, INFINITE); // rotate to "0" ticks absolute position, and NOT block program until task finishes
 
-	Serial.printf("MOTOR:\r\actuator from: %d\tto: %d\r\n", hMot3.getEncoderCnt(), actuator_target_state);
+	Serial.printf("MOTOR:\r\nactuator from: %d\tto: %d\r\n", hMot3.getEncoderCnt(), actuator_target_state);
 	hMot3.rotAbs(actuator_target_state, actuator_power, true, INFINITE); // rotate to "0" ticks absolute position, and NOT block program until task finishes
 
 	hLED3.off();
