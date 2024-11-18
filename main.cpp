@@ -39,6 +39,9 @@ static const int border_top = 9;
 // output
 int output_number = -1;
 
+// clear_button
+int clear_buuton_delay = 200;
+
 // debug
 bool debug = true;
 int debug_info_delay = 300;
@@ -144,6 +147,52 @@ void output_wheel_show()
 	hLED3.off();
 }
 
+void output_show()
+{
+	Serial.printf("------- OUTPUT -------\r\nbinary_array_index: %d\r\nbinary_array: [ ", binary_array_index);
+	for (int i = 0; i < binary_array_size; ++i)
+	{
+		Serial.printf("%d; ", binary_array[i]);
+	}
+	Serial.printf("]\r\noutput_number: %d\r\n", output_number);
+}
+
+void clear_button_thread_loop()
+{
+	while (true)
+	{
+		hBtn1.waitForPressed(); // waiting for press hBtn1
+		printf("clear_button PRESSED\r\n");
+		sys.delay(clear_buuton_delay);
+		hBtn1.waitForReleased(); // waiting for released hBtn1
+		printf("clear_button RELEASED\r\n");
+		clear_buffor();
+	}
+}
+
+void clear_buffor(bool all = false)
+{
+	if (all)
+	{
+		for (int i = 0; i < binary_array_size; ++i)
+		{
+			binary_array[i] = 1;
+		}
+		binary_array_index = 0;
+	}
+	else
+	{
+		if (binary_array_index == 0)
+		{
+			binary_array[0] = 1;
+		}
+		else
+		{
+			binary_array[--binary_array_index] = 1;
+		}
+	}
+}
+
 void welcome()
 {
 	Serial.printf("Husarion Telegraf\r\nhttps://github.com/Niewiaro/Husarion-Telegraf\r\n");
@@ -209,6 +258,7 @@ void hMain()
 {
 	init();
 	sys.taskCreate(input_wheel_encoder); // this creates a task that will execute `encoder` concurrently
+	sys.taskCreate(clear_button_thread_loop);
 
 	if (debug)
 	{
@@ -221,20 +271,9 @@ void hMain()
 		if (binary_array_index == 4)
 		{
 			output_number = binaryToDecimal(binary_array, binary_array_size);
-			Serial.printf("------- OUTPUT -------\r\nbinary_array_index: %d\r\nbinary_array: [ ", binary_array_index);
-			for (int i = 0; i < binary_array_size; ++i)
-			{
-				Serial.printf("%d; ", binary_array[i]);
-			}
-			Serial.printf("]\r\noutput_number: %d\r\n", output_number);
-
+			output_show();
 			sys.taskCreate(output_wheel_show);
-
-			for (int i = 0; i < binary_array_size; ++i)
-			{
-				binary_array[i] = 1;
-			}
-			binary_array_index = 0;
+			clear_buffor(true);
 		}
 	}
 }
