@@ -39,9 +39,22 @@ static const int border_top = 9;
 // output
 int output_number = -1;
 
+// debug
+bool debug = true;
+int debug_info_delay = 300;
+
 // RUNTIME VARS
 bool input_wheel_encoder_run = true;
 bool input_wheel_home_position_run = false;
+
+void debug_info()
+{
+	while (true)
+	{
+		Serial.printf("hMot1:\t%d\r\nhMot2:\t%d\r\nhMot3:\t%d\r\n", hMot1.getEncoderCnt(), hMot2.getEncoderCnt(), hMot3.getEncoderCnt());
+		sys.delay(debug_info_delay);
+	}
+}
 
 int binaryToDecimal(const bool *binary, int size)
 {
@@ -196,6 +209,11 @@ void hMain()
 {
 	init();
 	sys.taskCreate(input_wheel_encoder); // this creates a task that will execute `encoder` concurrently
+
+	if (debug)
+	{
+		sys.taskCreate(debug_info);
+	}
 
 	while (true)
 	{
