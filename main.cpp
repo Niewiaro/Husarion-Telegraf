@@ -25,8 +25,9 @@ static const int output_wheel_power = 700; // <0; 1000>
 
 // actuator
 int actuator_start_state = 0;
-static const int actuator_target_state = 360;
+static const int actuator_target_state = 16000;
 static const int actuator_power = 1000; // <0; 1000>
+static const bool actuator_start_from_end = false;
 
 // binary_array
 bool binary_array[4] = {1, 1, 1, 1};
@@ -40,11 +41,11 @@ static const int border_top = 9;
 int output_number = -1;
 
 // clear_button
-int clear_buuton_delay = 200;
+static const int clear_buuton_delay = 200;
 
 // debug
-bool debug = false;
-int debug_info_delay = 300;
+static const bool debug = true;
+static const int debug_info_delay = 300;
 
 // RUNTIME VARS
 bool input_wheel_encoder_run = true;
@@ -226,6 +227,10 @@ void init()
 	Serial.printf("output_wheel_start_state: %d\r\n", output_wheel_start_state);
 
 	// actuator_start_state
+	if(actuator_start_from_end) {
+		Serial.printf("MOTOR:\r\nactuator from: %d\tto: %d\r\n", hMot3.getEncoderCnt(), -actuator_start_state);
+		hMot3.rotAbs(-actuator_start_state, actuator_power, true, INFINITE); // rotate to "0" ticks absolute position, and NOT block program until task finishes
+	}
 	actuator_start_state = hMot3.getEncoderCnt();
 	Serial.printf("actuator_start_state: %d\r\n", actuator_start_state);
 
