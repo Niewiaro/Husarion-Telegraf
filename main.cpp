@@ -19,7 +19,7 @@ static const int input_wheel_power = 500; // <0; 1000>
 // output_wheel
 int output_wheel_start_state = 0;
 static const int output_wheel_digits = 10;
-static const int output_wheel_angle = 360;
+static const int output_wheel_angle = 720;
 static const int output_wheel_step = output_wheel_angle / output_wheel_digits;
 static const int output_wheel_power = 700; // <0; 1000>
 
@@ -51,7 +51,7 @@ void debug_info()
 {
 	while (true)
 	{
-		Serial.printf("hMot1:\t%d\r\nhMot2:\t%d\r\nhMot3:\t%d\r\n", hMot1.getEncoderCnt(), hMot2.getEncoderCnt(), hMot3.getEncoderCnt());
+		Serial.printf("hMot1: %d\thMot2: %d\thMot3: %d\r\n", hMot1.getEncoderCnt(), hMot2.getEncoderCnt(), hMot3.getEncoderCnt());
 		sys.delay(debug_info_delay);
 	}
 }
@@ -75,7 +75,7 @@ void input_wheel_home_position()
 {
 	input_wheel_home_position_run = true;
 	hLED2.on();
-	Serial.printf("MOTOR:\r\ninput_wheel from:\t%d\t\tto:\t%d\r\n", input_wheel_curent_state, input_wheel_start_state);
+	Serial.printf("MOTOR:\r\ninput_wheel from: %d\tto: %d\r\n", input_wheel_curent_state, input_wheel_start_state);
 	hMot1.rotAbs(input_wheel_start_state, input_wheel_power, true, INFINITE); // rotate to "0" ticks absolute position, and NOT block program until task finishes
 	// hMot1.rotRel(input_wheel_start_state - input_wheel_curent_state, 500, false, INFINITE);
 
@@ -120,7 +120,7 @@ void input_wheel_encoder()
 			{
 				binary_array[binary_array_index] = 0;
 			}
-			Serial.printf("Recived: %d\r\n", binary_array[binary_array_index]);
+			Serial.printf("------- Recived -------\r\n%d\r\n", binary_array[binary_array_index]);
 			binary_array_index++;
 		}
 		sys.delay(input_wheel_encoder_dalay);
@@ -131,14 +131,14 @@ void output_wheel_show()
 {
 	hLED3.on();
 
-	Serial.printf("MOTOR:\r\actuator from:\t%d\t\tto:\t%d\r\n", hMot3.getEncoderCnt(), actuator_start_state);
+	Serial.printf("MOTOR:\r\actuator from: %d\tto: %d\r\n", hMot3.getEncoderCnt(), actuator_start_state);
 	hMot3.rotAbs(actuator_start_state, actuator_power, true, INFINITE); // rotate to "0" ticks absolute position, and NOT block program until task finishes
 
 	int position = output_number * output_wheel_step;
-	Serial.printf("MOTOR:\r\noutput_wheel from:\t%d\t\tto:\t%d\r\n", hMot2.getEncoderCnt(), position);
+	Serial.printf("MOTOR:\r\noutput_wheel from: %d\tto: %d\r\n", hMot2.getEncoderCnt(), position);
 	hMot2.rotAbs(position, output_wheel_power, true, INFINITE); // rotate to "0" ticks absolute position, and NOT block program until task finishes
 
-	Serial.printf("MOTOR:\r\actuator from:\t%d\t\tto:\t%d\r\n", hMot3.getEncoderCnt(), actuator_target_state);
+	Serial.printf("MOTOR:\r\actuator from: %d\tto: %d\r\n", hMot3.getEncoderCnt(), actuator_target_state);
 	hMot3.rotAbs(actuator_target_state, actuator_power, true, INFINITE); // rotate to "0" ticks absolute position, and NOT block program until task finishes
 
 	hLED3.off();
@@ -146,20 +146,20 @@ void output_wheel_show()
 
 void welcome()
 {
-	Serial.printf("Husarion Telegraf\r\nhttps://github.com/Niewiaro/Husarion-Telegraf");
-	Serial.printf(" __  __           _           _                   _      ");
-	Serial.printf("|  \\/  |         | |         | |                 (_)     ");
-	Serial.printf("| \\  / | ___  ___| |__   __ _| |_ _ __ ___  _ __  _  ___ ");
-	Serial.printf("| |\\/| |/ _ \\/ __| '_ \\ / _` | __| '__/ _ \\| '_ \\| |/ __|");
-	Serial.printf("| |  | |  __/ (__| | | | (_| | |_| | | (_) | | | | | (__ ");
-	Serial.printf("|_|__|_|\\___|\\___|_| |_|\\__,_|\\__|_|  \\___/|_| |_|_|\\___|");
-	Serial.printf("|  __ \\          (_)                                     ");
-	Serial.printf("| |  | | ___  ___ _  __ _ _ __                           ");
-	Serial.printf("| |  | |/ _ \\/ __| |/ _` | '_ \\                          ");
-	Serial.printf("| |__| |  __/\\__ \\ | (_| | | | |                         ");
-	Serial.printf("|_____/ \\___||___/_|\\__, |_| |_|                         ");
-	Serial.printf("                     __/ |                               ");
-	Serial.printf("                    |___/                                ");
+	Serial.printf("Husarion Telegraf\r\nhttps://github.com/Niewiaro/Husarion-Telegraf\r\n");
+	Serial.printf(" __  __           _           _                   _               \r\n");
+	Serial.printf("|  \\/  |         | |         | |                 (_)             \r\n");
+	Serial.printf("| \\  / | ___  ___| |__   __ _| |_ _ __ ___  _ __  _  ___         \r\n");
+	Serial.printf("| |\\/| |/ _ \\/ __| '_ \\ / _` | __| '__/ _ \\| '_ \\| |/ __|    \r\n");
+	Serial.printf("| |  | |  __/ (__| | | | (_| | |_| | | (_) | | | | | (__          \r\n");
+	Serial.printf("|_|__|_|\\___|\\___|_| |_|\\__,_|\\__|_|  \\___/|_| |_|_|\\___|   \r\n");
+	Serial.printf("|  __ \\          (_)                                             \r\n");
+	Serial.printf("| |  | | ___  ___ _  __ _ _ __                                    \r\n");
+	Serial.printf("| |  | |/ _ \\/ __| |/ _` | '_ \\                                 \r\n");
+	Serial.printf("| |__| |  __/\\__ \\ | (_| | | | |                                \r\n");
+	Serial.printf("|_____/ \\___||___/_|\\__, |_| |_|                                \r\n");
+	Serial.printf("                     __/ |                                        \r\n");
+	Serial.printf("                    |___/                                         \r\n");
 }
 
 void init()
@@ -170,15 +170,15 @@ void init()
 	// input_wheel_start_state
 	input_wheel_start_state = hMot1.getEncoderCnt();
 	input_wheel_curent_state = input_wheel_start_state;
-	Serial.printf("input_wheel_start_state:\t%d\r\n", input_wheel_start_state);
+	Serial.printf("input_wheel_start_state: %d\r\n", input_wheel_start_state);
 
 	// output_wheel_start_state
 	output_wheel_start_state = hMot2.getEncoderCnt();
-	Serial.printf("output_wheel_start_state:\t%d\r\n", output_wheel_start_state);
+	Serial.printf("output_wheel_start_state: %d\r\n", output_wheel_start_state);
 
 	// actuator_start_state
 	actuator_start_state = hMot3.getEncoderCnt();
-	Serial.printf("actuator_start_state:\t%d\r\n", actuator_start_state);
+	Serial.printf("actuator_start_state: %d\r\n", actuator_start_state);
 
 	// binary_array
 	for (int i = 0; i < binary_array_size; ++i)
@@ -221,12 +221,12 @@ void hMain()
 		if (binary_array_index == 4)
 		{
 			output_number = binaryToDecimal(binary_array, binary_array_size);
-			Serial.printf("OUTPUT\r\nbinary_array_index:\t%d\r\nbinary_array:\t[ ", binary_array_index);
+			Serial.printf("------- OUTPUT -------\r\nbinary_array_index: %d\r\nbinary_array: [ ", binary_array_index);
 			for (int i = 0; i < binary_array_size; ++i)
 			{
 				Serial.printf("%d; ", binary_array[i]);
 			}
-			Serial.printf("]\r\noutput_number:\t%d\r\n", output_number);
+			Serial.printf("]\r\noutput_number: %d\r\n", output_number);
 
 			sys.taskCreate(output_wheel_show);
 
