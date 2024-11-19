@@ -142,8 +142,8 @@ void output_wheel_show()
 	Serial.printf("MOTOR:\r\noutput_wheel from: %d\tto: %d\r\n", hMot2.getEncoderCnt(), position);
 	hMot2.rotAbs(position, output_wheel_power, true, INFINITE); // rotate to "0" ticks absolute position, and NOT block program until task finishes
 
-	Serial.printf("MOTOR:\r\nactuator from: %d\tto: %d\r\n", hMot3.getEncoderCnt(), actuator_target_state);
-	hMot3.rotAbs(actuator_target_state, actuator_power, true, INFINITE); // rotate to "0" ticks absolute position, and NOT block program until task finishes
+	Serial.printf("MOTOR:\r\nactuator from: %d\tto: %d\r\n", hMot3.getEncoderCnt(), actuator_start_state + actuator_target_state);
+	hMot3.rotAbs(actuator_start_state + actuator_target_state, actuator_power, true, INFINITE); // rotate to "0" ticks absolute position, and NOT block program until task finishes
 
 	hLED3.off();
 }
@@ -228,8 +228,8 @@ void init()
 
 	// actuator_start_state
 	if(actuator_start_from_end) {
-		Serial.printf("MOTOR:\r\nactuator from: %d\tto: %d\r\n", hMot3.getEncoderCnt(), -actuator_start_state);
-		hMot3.rotAbs(-actuator_start_state, actuator_power, true, INFINITE); // rotate to "0" ticks absolute position, and NOT block program until task finishes
+		Serial.printf("MOTOR:\r\nactuator from: %d\tto: %d\r\n", hMot3.getEncoderCnt(), -actuator_target_state);
+		hMot3.rotAbs(-actuator_target_state, actuator_power, true, INFINITE); // rotate to "0" ticks absolute position, and NOT block program until task finishes
 	}
 	actuator_start_state = hMot3.getEncoderCnt();
 	Serial.printf("actuator_start_state: %d\r\n", actuator_start_state);
