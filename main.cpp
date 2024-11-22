@@ -12,7 +12,7 @@ int input_wheel_curent_state = 0;
 static const bool input_wheel_curent_state_show = false;
 static const int input_wheel_offset = 69;
 static const int input_wheel_tolerance = 5;
-static const int input_wheel_encoder_dalay = 777;
+static const int input_wheel_encoder_delay = 777;
 static const int input_wheel_home_position_delay = 1000;
 static const int input_wheel_power = 500; // <0; 1000>
 
@@ -41,7 +41,7 @@ static const int border_top = 9;
 int output_number = -1;
 
 // clear_button
-static const int clear_buuton_delay = 200;
+static const int clear_button_delay = 200;
 
 // debug
 static const bool debug = true;
@@ -124,10 +124,10 @@ void input_wheel_encoder()
 			{
 				binary_array[binary_array_index] = 0;
 			}
-			Serial.printf("------- RECIVED -------\r\n%d\r\n-----------------------\r\n", binary_array[binary_array_index]);
+			Serial.printf("------- RECEIVED -------\r\n%d\r\n-----------------------\r\n", binary_array[binary_array_index]);
 			binary_array_index++;
 		}
-		sys.delay(input_wheel_encoder_dalay);
+		sys.delay(input_wheel_encoder_delay);
 	}
 }
 
@@ -187,7 +187,7 @@ void clear_button_thread_loop()
 	{
 		hBtn1.waitForPressed(); // waiting for press hBtn1
 		printf("clear_button PRESSED\r\n");
-		sys.delay(clear_buuton_delay);
+		sys.delay(clear_button_delay);
 		hBtn1.waitForReleased(); // waiting for released hBtn1
 		printf("clear_button RELEASED\r\n");
 		clear_buffor();
@@ -272,7 +272,7 @@ void hMain()
 
 	while (true)
 	{
-		// check if all bits recived
+		// check if all bits received
 		if (binary_array_index == 4)
 		{
 			output_number = binaryToDecimal(binary_array, binary_array_size);
