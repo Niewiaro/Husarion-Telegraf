@@ -20,13 +20,14 @@ static const int input_wheel_power = 500; // <0; 1000>
 int output_wheel_start_state = 0;
 static const int output_wheel_digits = 10;
 static const int output_wheel_angle = 720;
-static const int output_wheel_step = output_wheel_angle / output_wheel_digits;
-static const int output_wheel_power = 700; // <0; 1000>
+static const int output_wheel_step = -output_wheel_angle / output_wheel_digits; // hardware motor is on reverse mount 
+static const int output_wheel_power = 300; // <0; 1000>
 
 // actuator
 int actuator_start_state = 0;
 static const int actuator_target_state = 16000;
 static const int actuator_power = 1000; // <0; 1000>
+static const int actuator_strat_from_end = true;
 
 // binary_array
 bool binary_array[4] = {1, 1, 1, 1};
@@ -215,20 +216,22 @@ void help()
 {
 	Serial.printf("Help for setting up Husarion Telegraf project:\r\n");
 
+	Serial.printf("\tq - quit setup\r\n");
+
 	Serial.printf("\tw - motor1 %d\r\n", input_wheel_power);
 	Serial.printf("\te - motor1 %d\r\n", input_wheel_power/4);
 	Serial.printf("\tr - motor1 %d\r\n", -input_wheel_power);
 	Serial.printf("\tt - motor1 %d\r\n", -input_wheel_power/4);
 
-	Serial.printf("\tw - motor2 %d\r\n", output_wheel_power);
-	Serial.printf("\te - motor2 %d\r\n", output_wheel_power/4);
-	Serial.printf("\tr - motor2 %d\r\n", -output_wheel_power);
-	Serial.printf("\tt - motor2 %d\r\n", -output_wheel_power/4);
+	Serial.printf("\ts - motor2 %d\r\n", output_wheel_power);
+	Serial.printf("\td - motor2 %d\r\n", output_wheel_power/6*5);
+	Serial.printf("\tf - motor2 %d\r\n", -output_wheel_power);
+	Serial.printf("\tg - motor2 %d\r\n", -output_wheel_power/6*5);
 
-	Serial.printf("\tw - motor3 %d\r\n", actuator_power);
-	Serial.printf("\te - motor3 %d\r\n", actuator_power/4);
-	Serial.printf("\tr - motor3 %d\r\n", -actuator_power);
-	Serial.printf("\tt - motor3 %d\r\n", -actuator_power/4);
+	Serial.printf("\tx - motor3 %d\r\n", actuator_power);
+	Serial.printf("\tc - motor3 %d\r\n", actuator_power/4);
+	Serial.printf("\tv - motor3 %d\r\n", -actuator_power);
+	Serial.printf("\tb - motor3 %d\r\n", -actuator_power/4);
 
 	Serial.printf("\tz - stop\r\n");
 	Serial.printf("\th - help\r\n");
@@ -283,6 +286,17 @@ void hMain()
 	sys.setSysLogDev(&devNull); // turn off system logs on Serial
 	sys.setLogDev(&Serial);
 
+	if (debug)
+	{
+		sys.taskCreate(debug_info);
+	}
+
+	// actuator_start_state
+	if(actuator_strat_from_end) {
+		Serial.printf("MOTOR:\r\nactuator from: %d\tto: %d\r\n", hMot3.getEncoderCnt(), -actuator_target_state);
+		hMot3.rotAbs(-actuator_target_state, actuator_power, true, INFINITE); // rotate to "0" ticks absolute position, and NOT block program until task finishes
+	}
+
 	help();
 
 	char c = ' ';
@@ -317,32 +331,32 @@ void hMain()
 				hMot2.setPower(output_wheel_power);
 				break;
 			case 'd':
-				Serial.printf("MOTOR2: %d\r\n", output_wheel_power/4);
-				hMot2.setPower(output_wheel_power/4);
+				Serial.printf("MOTOR2: %d\r\n", output_wheel_power/6*5);
+				hMot2.setPower(output_wheel_power/6*5);
 				break;
 			case 'f':
 				Serial.printf("MOTOR2: %d\r\n", -output_wheel_power);
 				hMot2.setPower(-output_wheel_power);
 				break;
 			case 'g':
-				Serial.printf("MOTOR2: %d\r\n", -output_wheel_power/4);
-				hMot2.setPower(-output_wheel_power/4);
+				Serial.printf("MOTOR2: %d\r\n", -output_wheel_power/6*5);
+				hMot2.setPower(-output_wheel_power/6*5);
 				break;
 			case 'x':
 				Serial.printf("MOTOR3: %d\r\n", actuator_power);
-				hMot1.setPower(actuator_power);
+				hMot3.setPower(actuator_power);
 				break;
 			case 'c':
 				Serial.printf("MOTOR3: %d\r\n", actuator_power/4);
-				hMot1.setPower(actuator_power/4);
+				hMot3.setPower(actuator_power/4);
 				break;
 			case 'v':
 				Serial.printf("MOTOR3: %d\r\n", -actuator_power);
-				hMot1.setPower(-actuator_power);
+				hMot3.setPower(-actuator_power);
 				break;
 			case 'b':
 				Serial.printf("MOTOR3: %d\r\n", -actuator_power/4);
-				hMot1.setPower(-actuator_power/4);
+				hMot3.setPower(-actuator_power/4);
 				break;
 			case 'z':
 				Serial.printf("Stop\r\n");
@@ -368,11 +382,6 @@ void hMain()
 
 	sys.taskCreate(input_wheel_encoder); // this creates a task that will execute `encoder` concurrently
 	sys.taskCreate(clear_button_thread_loop);
-
-	if (debug)
-	{
-		sys.taskCreate(debug_info);
-	}
 
 	while (true)
 	{
